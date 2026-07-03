@@ -1,0 +1,203 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Shopping Cart - NovaCart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px;">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="{% url 'home' %}">Home</a>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+        <span>Shopping Cart</span>
+    </div>
+
+    <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 30px;">Shopping Cart</h1>
+
+    {% if not cart_items %}
+    <!-- Empty Cart Graphic State -->
+    <div style="text-align: center; padding: 60px 0; max-width: 500px; margin: 0 auto;">
+        <div
+            style="width: 120px; height: 120px; border-radius: 50%; background-color: var(--light-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--muted);">
+            <i class="fa-solid fa-cart-flatbed" style="font-size: 48px;"></i>
+        </div>
+        <h2 style="font-size: 22px; font-weight:700; margin-bottom: 8px;">Your Cart is Empty</h2>
+        <p style="color: var(--muted); margin-bottom: 24px; font-size:15px; line-height: 1.5;">Looks like you haven't
+            added any products to your cart yet. Explore our selections and find the best deals!</p>
+        <a href="{% url 'product_list' %}" class="btn btn-primary" style="padding: 12px 28px;">
+            Continue Shopping
+        </a>
+    </div>
+    {% else %}
+    <!-- Cart Operations Deck -->
+    <div class="cart-grid">
+        <!-- Items Table Block -->
+        <div class="cart-table-container">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr id="cart-row-{{ item.id }}">
+                        <td>
+                            <div class="cart-product-cell">
+                                <div class="cart-item-img">
+                                    {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                    {% else %}
+                                    <i class="fa-regular fa-image" style="color: var(--muted);"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">
+                                        <a href="{% url 'product_detail' item.product.slug %}"
+                                            style="color: var(--dark);">{{ item.product.name }}</a>
+                                    </h4>
+                                    <span style="font-size: 12px; color: var(--muted);">Category: {{
+                                        item.product.category.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight: 500;">${{ item.product.price }}</td>
+                        <td>
+                            <!-- AJAX modified Quantity adjustments -->
+                            <div class="qty-selector" style="margin: 0;">
+                                <button type="button" class="qty-btn"
+                                    onclick="adjustQty('{{ item.id }}', -1)">-</button>
+                                <input type="number" id="qty-{{ item.id }}" class="qty-input"
+                                    value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
+                                    data-prev-val="{{ item.quantity }}"
+                                    onchange="handleQtyChange('{{ item.id }}', this)">
+                                <button type="button" class="qty-btn" onclick="adjustQty('{{ item.id }}', 1)">+</button>
+                            </div>
+                            <div style="font-size: 11px; color: var(--muted); margin-top:4px; text-align:center;">
+                                Max available: {{ item.product.stock }}
+                            </div>
+                        </td>
+                        <td style="font-weight: 700; color: var(--dark);" id="subtotal-{{ item.id }}">${{ item.subtotal
+                            }}</td>
+                        <td style="text-align: right;">
+                            <button onclick="removeCartItem('{{ item.id }}')"
+                                style="background: none; border: none; font-size:16px; color: var(--error); cursor: pointer;"
+                                title="Remove item">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pricing Summary Card -->
+        <div>
+            <div class="summary-card">
+                <h3
+                    style="font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;">
+                    Order Summary</h3>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--muted);">Subtotal</span>
+                        <strong id="summary-subtotal">${{ cart.subtotal }}</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--muted);">Coupon Discount</span>
+                        <span style="color: var(--success); font-weight: 600;" id="summary-discount">-${{ cart.discount
+                            }}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--muted);">Shipping</span>
+                        <strong id="summary-shipping">{% if cart.shipping == 0 %}FREE{% else %}${{ cart.shipping }}{%
+                            endif %}</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--muted);">Estimated Tax (8%)</span>
+                        <strong id="summary-tax">${{ cart.tax }}</strong>
+                    </div>
+                </div>
+
+                <div
+                    style="border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 16px;">Grand Total</strong>
+                    <strong style="font-size: 20px; color: var(--primary);" id="summary-grand-total">${{
+                        cart.grand_total }}</strong>
+                </div>
+
+                <!-- Discount Code Coupon section -->
+                <div style="margin-bottom: 24px;">
+                    <label for="promo-input" class="form-label"
+                        style="font-size:13.5px; font-weight:600; display:block;">Enter Coupon / Promo Code</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="promo-input" placeholder="e.g. SAVE50" class="form-input"
+                            style="padding: 10px; text-transform: uppercase;"
+                            value="{% if cart.coupon %}{{ cart.coupon.code }}{% endif %}">
+                        <button onclick="applyPromoCode()" class="btn btn-outline"
+                            style="padding: 10px 16px; font-size: 14px;">Apply</button>
+                    </div>
+                    <div id="promo-feedback" style="margin-top: 8px; font-size:13px;">
+                        {% if cart.coupon %}
+                        <span style="color: var(--success); font-weight:600;">Active Coupon: {{ cart.coupon.code }}
+                            (-${{ cart.discount }})</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn btn-primary btn-block"
+                    style="padding: 12px 20px; display: block; text-align: center; font-weight: 700;">
+                    Proceed to Checkout <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Adjust selector quantities
+    function adjustQty(itemId, change) {
+        const qtyBox = document.getElementById(`qty-${itemId}`);
+        if (!qtyBox) return;
+
+        let val = parseInt(qtyBox.value) || 1;
+        const max = parseInt(qtyBox.getAttribute('max')) || 999;
+
+        let target = val + change;
+        if (target < 1) target = 1;
+        if (target > max) {
+            target = max;
+            showToast(`Only ${max} items available in stock.`, 'warning');
+        }
+
+        if (target !== val) {
+            qtyBox.value = target;
+            updateCartQty(itemId, target);
+        }
+    }
+
+    function handleQtyChange(itemId, input) {
+        let val = parseInt(input.value) || 1;
+        const max = parseInt(input.getAttribute('max')) || 999;
+
+        if (val < 1) val = 1;
+        if (val > max) {
+            val = max;
+            showToast(`Only ${max} items available in stock.`, 'warning');
+        }
+
+        input.value = val;
+        updateCartQty(itemId, val);
+    }
+</script>
+{% endblock %}

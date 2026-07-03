@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NovaCart - Your Modern Shopping Platform{% endblock %}</title>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Central Style Asset -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- 1. Sticky Navigation Bar -->
+    <nav class="navbar">
+        <div class="container nav-wrapper">
+            <!-- Brand Logo -->
+            <a href="{% url 'home' %}" class="nav-logo">
+                <i class="fa-solid fa-bag-shopping"></i> Nova<span>Cart</span>
+            </a>
+
+            <!-- Mobile Hamburger Toggle -->
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Navigation Links -->
+            <ul class="nav-links" id="nav-links">
+                <li><a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
+                <li><a href="{% url 'product_list' %}" class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">Shop</a></li>
+                <li>
+                    <a href="{% url 'product_list' %}?category=electronics" class="nav-link">Electronics</a>
+                </li>
+                <li>
+                    <a href="{% url 'product_list' %}?category=accessories" class="nav-link">Accessories</a>
+                </li>
+                <li><a href="#footer-about" class="nav-link">About</a></li>
+            </ul>
+
+            <!-- Search Form -->
+            <form action="{% url 'product_list' %}" method="GET" class="nav-search">
+                <i class="fa-solid fa-magnifying-glass nav-search-icon"></i>
+                <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search products..." class="nav-search-input">
+            </form>
+
+            <!-- Action Badges & Icons -->
+            <div class="nav-actions">
+                <!-- Search Icon (Mobile Only Toggle is implicit) -->
+                
+                <!-- Wishlist Badge -->
+                <a href="{% url 'dashboard' %}?tab=wishlist" class="nav-icon" title="Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                    <span class="badge" id="wishlist-badge" {% if wishlist_count == 0 %}style="display:none;"{% endif %}>{{ wishlist_count }}</span>
+                </a>
+
+                <!-- Cart Badge -->
+                <a href="{% url 'cart' %}" class="nav-icon" title="Shopping Cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="badge" id="cart-badge" {% if cart_count == 0 %}style="display:none;"{% endif %}>{{ cart_count }}</span>
+                </a>
+
+                <!-- User Interface Dropdown/Profile link -->
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="nav-icon" title="Dashboard">
+                        <i class="fa-regular fa-user"></i>
+                    </a>
+                    {% if request.user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" style="color: var(--primary); font-size:14px; font-weight:700; display:flex; align-items:center; gap:4px;" title="Custom Admin Dashboard">
+                            <i class="fa-solid fa-user-gear"></i> Admin
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" style="color: var(--muted); font-size:16px;" title="Logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-secondary btn-sm" style="padding: 6px 14px;">Sign In</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm" style="padding: 6px 14px;">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. Main Page Content Block -->
+    <main style="flex-grow: 1;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 3. Global Toast Alerts Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 4. Global Action/Spinner Loading Overlay -->
+    <div id="spinner-overlay" class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 5. Floating Scroll to Top Button -->
+    <button id="scroll-top-btn" class="scroll-top-btn" title="Back to Top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- 6. Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Footer Brand Column -->
+                <div class="footer-brand" id="footer-about">
+                    <h3><i class="fa-solid fa-bag-shopping"></i> Nova<span>Cart</span></h3>
+                    <p>Experience the future of online shopping. NovaCart provides premium quality products, dedicated support, and lightning-fast logistics to your doorstep.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="footer-social-link"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="footer-social-link"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="footer-social-link"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="footer-social-link"><i class="fa-brands fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Navigation -->
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
+                        <li><a href="{% url 'product_list' %}" class="footer-link">Shop Catalog</a></li>
+                        <li><a href="{% url 'product_list' %}?category=electronics" class="footer-link font-size-14">Electronics Category</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="footer-link">My Account</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support Links -->
+                <div class="footer-column">
+                    <h4>Customer Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Help Center / FAQ</a></li>
+                        <li><a href="#" class="footer-link">Track Your Order</a></li>
+                        <li><a href="#" class="footer-link">Returns & Refunds</a></li>
+                        <li><a href="#" class="footer-link">Shipping Policies</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <ul class="footer-links">
+                        <li><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> 102 E-Commerce Way, Suite 400</li>
+                        <li><i class="fa-solid fa-phone" style="margin-right: 8px;"></i> +1 (800) 555-NOVA</li>
+                        <li><i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> care@novacart.com</li>
+                        <li><i class="fa-solid fa-clock" style="margin-right: 8px;"></i> Mon - Sat: 9:00 AM - 6:00 PM</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Credits -->
+            <div class="footer-bottom">
+                <p>&copy; 2026 NovaCart. Designed for premium shopping experiences. All Rights Reserved.</p>
+                <div style="display: flex; gap: 20px;">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms & Conditions</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Logic Script Asset -->
+    <script src="{% static 'js/app.js' %}"></script>
+    
+    <!-- Render Django Session System Messages as Toasters on Load -->
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                showToast("{{ message|escapejs }}", "{{ message.tags }}");
+            {% endfor %}
+        {% endif %}
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

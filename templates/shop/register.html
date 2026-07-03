@@ -1,0 +1,81 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Sign Up - NovaCart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px;">
+    <div class="auth-wrapper" style="max-width: 540px;">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p style="color: var(--muted); font-size: 14.5px;">Register to start shopping and track your orders.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="auth-error-list">
+            {% for error in form.non_field_errors %}
+            <p><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> {{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form action="{% url 'register' %}" method="POST" novalidate>
+            {% csrf_token %}
+
+            <!-- Full Name Field -->
+            <div class="form-group">
+                <label for="id_full_name" class="form-label">Full Name</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                <span style="color: var(--error); font-size:12px;">{{ form.full_name.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Username Field -->
+            <div class="form-group">
+                <label for="id_username" class="form-label">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <span style="color: var(--error); font-size:12px;">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+                <label for="id_email" class="form-label">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <span style="color: var(--error); font-size:12px;">{{ form.email.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Password Fields Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="id_password" class="form-label">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <span style="color: var(--error); font-size:12px;">{{ form.password.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="id_confirm_password" class="form-label">Confirm Password</label>
+                    {{ form.confirm_password }}
+                    {% if form.confirm_password.errors %}
+                    <span style="color: var(--error); font-size:12px;">{{ form.confirm_password.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px; padding: 12px 20px;">
+                <i class="fa-solid fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 24px; font-size: 14.5px; color: var(--muted);">
+            Already have an account? <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 600;">Sign
+                In</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
