@@ -1,0 +1,285 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}My Dashboard - NovaCart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px;">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="{% url 'home' %}">Home</a>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+        <span>My Dashboard</span>
+    </div>
+
+    <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 30px;">My Account</h1>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Menu Navigation -->
+        <aside class="dashboard-sidebar">
+            <div
+                style="text-align: center; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px;">
+                <div
+                    style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 12px;">
+                    {{ request.user.username.0.upper }}
+                </div>
+                <h3 style="font-size: 18px; margin-bottom: 4px;">{{ request.user.first_name }} {{ request.user.last_name
+                    }}</h3>
+                <p style="color: var(--muted); font-size: 14px;">@{{ request.user.username }}</p>
+                <p style="color: var(--muted); font-size: 13px; margin-top: 4px;">Member since {{
+                    request.user.date_joined|date:"M Y" }}</p>
+            </div>
+
+            <nav>
+                <div class="dash-menu-item active" data-tab="profile">
+                    <i class="fa-regular fa-user" style="width: 20px;"></i> Edit Profile
+                </div>
+                <div class="dash-menu-item" data-tab="orders">
+                    <i class="fa-solid fa-box-open" style="width: 20px;"></i> My Orders
+                </div>
+                <div class="dash-menu-item" data-tab="wishlist">
+                    <i class="fa-regular fa-heart" style="width: 20px;"></i> Wishlist
+                </div>
+                <div class="dash-menu-item" data-tab="addresses">
+                    <i class="fa-regular fa-map" style="width: 20px;"></i> Saved Address
+                </div>
+                <a href="{% url 'logout' %}" class="dash-menu-item" style="color: var(--error);">
+                    <i class="fa-solid fa-arrow-right-from-bracket" style="width: 20px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content Panels Grid -->
+        <div class="dashboard-content-panel">
+            <!-- 1. PROFILE SECTION -->
+            <div class="tab-content" id="tab-profile">
+                <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">Edit Profile</h2>
+                <form action="{% url 'edit_profile' %}" method="POST" style="max-width: 500px;">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="id_full_name" class="form-label">Full Name</label>
+                        {{ profile_form.full_name }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_email" class="form-label">Email Address</label>
+                        {{ profile_form.email }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 24px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+                    </button>
+                </form>
+            </div>
+
+            <!-- 2. ORDERS SECTION -->
+            <div class="tab-content" id="tab-orders" style="display: none;">
+                <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">My Orders</h2>
+
+                {% if not orders %}
+                <div style="text-align: center; padding: 40px 0;">
+                    <i class="fa-solid fa-box-open"
+                        style="font-size: 48px; color: var(--muted); margin-bottom: 16px;"></i>
+                    <p style="color: var(--muted);">You haven't placed any orders yet.</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm" style="margin-top: 16px;">Shop
+                        Now</a>
+                </div>
+                {% else %}
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    {% for order in orders %}
+                    <div style="border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+                        <!-- Order Summary Header -->
+                        <div
+                            style="background-color: var(--light-bg); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <p style="font-size: 13px; color: var(--muted); margin-bottom: 2px;">Order Placed</p>
+                                <p style="font-weight: 600; font-size: 14.5px;">{{ order.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 13px; color: var(--muted); margin-bottom: 2px;">Order ID</p>
+                                <p style="font-weight: 600; font-size: 14.5px;">#{{ order.id }}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 13px; color: var(--muted); margin-bottom: 2px;">Total Paid</p>
+                                <p style="font-weight: 700; font-size: 15px; color: var(--primary);">${{
+                                    order.grand_total }}</p>
+                            </div>
+                            <div>
+                                <!-- ORDER STATUS BADGE -->
+                                <span class="order-badge badge-{{ order.status|lower }}">
+                                    {{ order.status }}
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Order Products Listing -->
+                        <div style="padding: 20px;">
+                            {% for item in order.items.all %}
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px dashed var(--border);">
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div
+                                        style="width: 50px; height: 50px; background-color: var(--light-bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border);">
+                                        {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                            style="max-height: 40px; max-width: 40px; object-fit: contain;">
+                                        {% else %}
+                                        <i class="fa-regular fa-image" style="color: var(--muted);"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 14.5px; font-weight: 700;">{{ item.product.name }}</h4>
+                                        <p style="font-size: 13px; color: var(--muted);">Qty: {{ item.quantity }}
+                                            &times; ${{ item.price }}</p>
+                                    </div>
+                                </div>
+                                <span style="font-weight: 700; font-size: 14.5px;">${{ item.subtotal }}</span>
+                            </div>
+                            {% endfor %}
+                            <div style="font-size:13.5px; color:var(--muted); margin-top:2px;">
+                                <i class="fa-solid fa-truck" style="margin-right: 6px;"></i> Delivery Address: <span
+                                    style="font-weight:600; color:var(--dark);">{{ order.shipping_address }}, {{
+                                    order.city }}, {{ order.postal_code }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 3. WISHLIST SECTION -->
+            <div class="tab-content" id="tab-wishlist" style="display: none;">
+                <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">My Wishlist</h2>
+
+                {% if not wishlist_items %}
+                <div style="text-align: center; padding: 40px 0;">
+                    <i class="fa-regular fa-heart"
+                        style="font-size: 48px; color: var(--muted); margin-bottom: 16px;"></i>
+                    <p style="color: var(--muted);">Your wishlist is empty.</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm" style="margin-top: 16px;">Explore
+                        Items</a>
+                </div>
+                {% else %}
+                <!-- Wishlist Cards Stack -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                    {% for item in wishlist_items %}
+                    <div class="product-card" id="wishlist-row-{{ item.product.id }}">
+                        <!-- Image block -->
+                        <div class="product-card-img">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                            <i class="fa-regular fa-image" style="font-size: 32px; color: var(--muted);"></i>
+                            {% endif %}
+                            <!-- Toggle Wishlist (Remove) -->
+                            <button class="wishlist-btn-toggle active" data-product-id="{{ item.product.id }}"
+                                title="Remove item">
+                                <i class="fa-solid fa-heart"></i>
+                            </button>
+                        </div>
+
+                        <div class="product-card-body">
+                            <span class="product-card-cat">{{ item.product.category.name }}</span>
+                            <h3 class="product-card-title">
+                                <a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                            </h3>
+                            <div class="product-card-price">${{ item.product.price }}</div>
+
+                            <div style="display: grid; grid-template-columns: 1fr; margin-top: auto;">
+                                {% if item.product.stock > 0 %}
+                                <button class="btn btn-primary btn-add-to-cart btn-sm"
+                                    data-product-id="{{ item.product.id }}">
+                                    <i class="fa-solid fa-cart-shopping"></i> Add to Cart
+                                </button>
+                                {% else %}
+                                <button class="btn btn-secondary btn-sm" style="opacity: 0.6; cursor: not-allowed;"
+                                    disabled>
+                                    Out of Stock
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 4. SAVED ADDRESSES SECTION -->
+            <div class="tab-content" id="tab-addresses" style="display: none;">
+                <h2 style="font-size: 22px; margin-bottom: 20px; font-weight: 700;">Saved Shipping Addresses</h2>
+
+                {% if not saved_address %}
+                <div style="text-align: center; padding: 40px 0;">
+                    <i class="fa-regular fa-map" style="font-size: 48px; color: var(--muted); margin-bottom: 16px;"></i>
+                    <p style="color: var(--muted);">No addresses saved. Your addresses are automatically saved after
+                        checkout.</p>
+                </div>
+                {% else %}
+                <div
+                    style="border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 500px; position:relative;">
+                    <span
+                        style="position: absolute; top: 16px; right: 16px; font-size:12px; font-weight: 700; color: var(--primary); background-color: var(--primary-light); padding: 4px 8px; border-radius: 4px;">Primary</span>
+                    <h3 style="font-size: 16px; font-weight:700; margin-bottom: 12px;"><i
+                            class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 6px;"></i>
+                        Delivery Destination</h3>
+                    <p style="font-size:15px; font-weight: 600; margin-bottom: 4px;">{{ request.user.first_name }} {{
+                        request.user.last_name }}</p>
+                    <p style="color: var(--muted); font-size:14.5px; line-height: 1.5; margin-bottom: 8px;">
+                        {{ saved_address.address }}<br>
+                        {{ saved_address.city }}, {{ saved_address.state }} - {{ saved_address.postal_code }}
+                    </p>
+                    <p style="font-size: 13.5px; color: var(--muted);"><i class="fa-solid fa-phone"></i> Phone:
+                        <strong>{{ saved_address.phone }}</strong></p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab switching engine
+    const tabMenus = document.querySelectorAll('.dash-menu-item[data-tab]');
+    const tabPanels = document.querySelectorAll('.tab-content');
+
+    function switchTab(tabId) {
+        // Toggle Sidebar Nav States
+        tabMenus.forEach(menu => {
+            if (menu.getAttribute('data-tab') === tabId) {
+                menu.classList.add('active');
+            } else {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Toggle Content Visibility
+        tabPanels.forEach(panel => {
+            if (panel.id === `tab-${tabId}`) {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+    }
+
+    // Attach listeners
+    tabMenus.forEach(menu => {
+        menu.addEventListener('click', () => {
+            const tabId = menu.getAttribute('data-tab');
+            switchTab(tabId);
+            // Sync to window history hash
+            history.pushState(null, null, `?tab=${tabId}`);
+        });
+    });
+
+    // Check query parameters on load (e.g. ?tab=wishlist)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryTab = urlParams.get('tab');
+    if (queryTab && ['profile', 'orders', 'wishlist', 'addresses'].includes(queryTab)) {
+        switchTab(queryTab);
+    }
+</script>
+{% endblock %}
